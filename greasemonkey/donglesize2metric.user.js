@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DongleSize2Metric
 // @namespace    https://github.com/yossi99/DongleSize2Metric
-// @version      2024-01-05
+// @version      v0.0.2-alpha
 // @description  Convert the toy size chart information from imperial to metric system from some famous adult toy makers
 // @author       Yossi99
 // @match        https://twintailcreations.com/products/*
