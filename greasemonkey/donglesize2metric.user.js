@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DongleSize2Metric
 // @namespace    https://github.com/yossi99/DongleSize2Metric
-// @version      2024-01-05
+// @version      v0.0.2-alpha
 // @description  Convert the toy size chart information from imperial to metric system from some famous adult toy makers
 // @author       Yossi99
 // @match        https://twintailcreations.com/products/*
@@ -15,12 +15,13 @@ const SupportedDomains = Object.freeze({
     TwinTail: 'twintailcreations.com',
     BadDragon: 'bad-dragon.com'
 });
+const patchAttribute = 'patched';
 
 (function() {
     const domain = window.location.host
     const supDomains = Object.values(SupportedDomains);
     if (!supDomains.find(i => i === domain)) {
-        console.log('Domain not supported');
+        console.error('Domain not supported');
         return;
     }
     const domainMap = {
@@ -28,10 +29,7 @@ const SupportedDomains = Object.freeze({
         [SupportedDomains.BadDragon]: PatchBadDragonSizeTable
     }
     const observer = new MutationObserver((event) => {
-        const result = domainMap[domain]();
-        if (result) {
-            observer.disconnect();
-        }
+        domainMap[domain]();
     });
     observer.observe(document.querySelector('body'), {childList: true, subtree: true});
 })();
@@ -41,19 +39,30 @@ function inches2CmFormated(string) { return `${(+string * 2.54).toFixed(2)} cm`;
 function PatchBadDragonSizeTable() {
     const toySizeTable = document.querySelector('.modal.sizing-chart__modal')?.querySelector('table');
     if (!toySizeTable) {
-        console.error("Toy size table not found");
+        console.warn("Toy size table not found");
         return false;
     }
     const tableRows = toySizeTable.querySelectorAll('tr')
     for (let row of tableRows) {
         const header = row.querySelector('th');
         (header ? patchHeader(header) : console.warn ('Header not found'));
-        [...row.querySelectorAll('td')]
-            .filter(i => !Number.isNaN(+i.textContent))
-            ?.forEach(i => (i.textContent = inches2CmFormated(i.textContent)));
+        const rowData = [...row.querySelectorAll(`td:not([${patchAttribute}])`)]
+        rowData.filter(i => !Number.isNaN(+i.textContent))
+            ?.forEach(i => patchElement(i));
     }
     return true;
+
+    function patchElement(element) {
+        if (!(element instanceof Element)) {
+            return;
+        }
+        element.textContent = inches2CmFormated(element.textContent);
+        element.setAttribute(patchAttribute, true);
+    }
     function patchHeader(header) {
+        if (!(header instanceof Element)) {
+            return;
+        }
         const headerExp = /(?:\w+| )+ \([\w]+\)$/s;
         if (!headerExp.test(header.textContent)) {
             return;
@@ -63,11 +72,15 @@ function PatchBadDragonSizeTable() {
 }
 
 function PatchTwinTailSizeTable() {
-    const chartBtn = document.querySelector('.ProductForm__Label > button')
-    if (!chartBtn) {
-        console.error('chart button not found');
+    const chartBtnSelector = [
+        '.ProductForm__Label > button',
+        '[data-action=open-modal].ProductForm__LabelLink'
+    ].find(i => document.querySelector(i));
+    if (!chartBtnSelector) {
+        console.warn('chart button not found');
         return;
     }
+    const chartBtn = document.querySelector(chartBtnSelector);
     const chartControlName = chartBtn.getAttribute('aria-controls');
     if (!chartControlName) {
         console.error('Chart control name not found');
@@ -75,16 +88,30 @@ function PatchTwinTailSizeTable() {
     }
     const toySizeTable = document.querySelector(`[id=${chartControlName}]`)?.querySelector('table');
     if (!toySizeTable) {
-        console.error('Toy size table not found!');
+        console.warn('Toy size table not found!');
         return false;
     }
+    const sizeRegExp = /((?:\d*\.)?\d+)(?:"|”)?(?:$|(?="|”))/s;
     // Get rows and skip header (toy name)
     const tableRows = [...(document.querySelectorAll('tr') ?? [])].slice(1);
     for (let row of tableRows) {
         // Skip category header
-        const rowData = [...(row.querySelectorAll('td') ?? [])].slice(1);
-        rowData.filter(i => /[\d]+"/s.test(i.textContent))
-            .forEach(i => (i.textContent = inches2CmFormated(i.textContent.slice(0, -1))))
+        const rowData = [...(row.querySelectorAll(`td:not([${patchAttribute}])`) ?? [])].slice(1);
+        rowData.filter(i => sizeRegExp.test(i.textContent))
+            ?.forEach(i => patchElement(i));
     }
     return true;
+
+    function patchElement(element) {
+        if (!(element instanceof Element)) {
+            return;
+        }
+        const inches = +(sizeRegExp.exec(element.textContent)[1]);
+        if (Number.isNaN(inches)) {
+            console.error("Failed to extract size from: ", element);
+            return;
+        }
+        element.textContent = element.textContent.replace(sizeRegExp, inches2CmFormated(inches));
+        element.setAttribute(patchAttribute, true);
+    }
 }
