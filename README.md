@@ -1,5 +1,5 @@
 ![](https://img.shields.io/github/stars/yossi99/DongleSize2Metric?logo=github)
-![Greasy Fork Downloads](https://img.shields.io/greasyfork/dt/484011-donglesize2metric?logo=greasyfork)
+![Greasy Fork Downloads](https://img.shields.io/greasyfork/dt/484013-donglesize2metric?logo=greasyfork)
 
 
 # DongleSize2Metric
