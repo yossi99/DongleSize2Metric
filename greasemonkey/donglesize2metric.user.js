@@ -37,12 +37,12 @@ const patchAttribute = 'patched';
 function inches2CmFormated(string) { return `${(+string * 2.54).toFixed(2)} cm`;}
 
 function PatchBadDragonSizeTable() {
-    const toySizeTable = document.querySelector('.modal.sizing-chart__modal')?.querySelector('table');
+    const toySizeTable = document.querySelector("table.sizing-chart__table");
     if (!toySizeTable) {
         console.warn("Toy size table not found");
         return false;
     }
-    const tableRows = toySizeTable.querySelectorAll('tr')
+    const tableRows = toySizeTable.querySelectorAll('tbody tr')
     for (let row of tableRows) {
         const header = row.querySelector('th');
         (header ? patchHeader(header) : console.warn ('Header not found'));
