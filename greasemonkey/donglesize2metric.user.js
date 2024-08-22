@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DongleSize2Metric
 // @namespace    https://github.com/yossi99/DongleSize2Metric
-// @version      v0.0.3-beta
+// @version      v0.0.4-beta
 // @description  Convert the toy size chart information from imperial to metric system from some famous adult toy makers
 // @author       Yossi99
 // @match        https://twintailcreations.com/products/*
@@ -37,7 +37,9 @@ const patchAttribute = 'patched';
 function inches2CmFormated(string) { return `${(+string * 2.54).toFixed(2)} cm`;}
 
 function PatchBadDragonSizeTable() {
-    const toySizeTable = document.querySelector("table.sizing-chart__table");
+    const toySizeTable = [".table.sizing-chart__table", "table.sizing-chart"]
+      .map((i) => document.querySelector(i))
+      .find((i) => i);
     if (!toySizeTable) {
         console.warn("Toy size table not found");
         return false;
