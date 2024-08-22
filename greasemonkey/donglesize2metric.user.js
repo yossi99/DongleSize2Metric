@@ -37,7 +37,9 @@ const patchAttribute = 'patched';
 function inches2CmFormated(string) { return `${(+string * 2.54).toFixed(2)} cm`;}
 
 function PatchBadDragonSizeTable() {
-    const toySizeTable = document.querySelector("table.sizing-chart__table");
+    const toySizeTable = [".table.sizing-chart__table", "table.sizing-chart"]
+      .map((i) => document.querySelector(i))
+      .find((i) => i);
     if (!toySizeTable) {
         console.warn("Toy size table not found");
         return false;
